@@ -4,7 +4,7 @@ crypto = require("crypto");
 
 module.exports = class {
     constructor() {
-        this.server_public_key = fromHexString("5C344B84451436796B735CB62EE38DF813A31798D21294F8C05E0F2B4CA4C047");
+        this.server_public_key = fromHexString("076802FC015600FD802FC036601FB00F046802FC012C00DF8057003FE00DC007");
         this.client_secret_key = new Uint8Array(crypto.randomBytes(32));
         this.client_public_key = new Uint8Array(32);
         Nacl.lowlevel.crypto_scalarmult_base(this.client_public_key, this.client_secret_key);
