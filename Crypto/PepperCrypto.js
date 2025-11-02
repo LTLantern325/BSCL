@@ -16,17 +16,32 @@ module.exports = class {
             ]
         });
         this.client_nonce = new Nonce();
+        this.session_key = null;
+        this.snonce = null;
     }
+    
+    // snonce 생성 메서드 추가
+    generateSnonce() {
+        this.snonce = new Uint8Array(crypto.randomBytes(24));
+        return this.snonce;
+    }
+    
     encrypt(type, payload) {
         if (type == 10100) {
             return payload;
         } else if (type == 10101) {
-            return Buffer.concat([this.client_public_key, Nacl.box.after(Buffer.concat([this.session_key, this.client_nonce.bytes(), payload]), this.nonce.bytes(), this.key)]);
+            // ScDocumentation 프로토콜에 따른 수정:
+            // 1. payload는 이미 Session Token + snonce + LoginMessage 내용을 포함
+            // 2. payload만 암호화
+            // 3. client_public_key를 앞에 붙임
+            let encrypted = Nacl.box.after(payload, this.nonce.bytes(), this.key);
+            return Buffer.concat([this.client_public_key, encrypted]);
         } else {
             this.client_nonce.increment();
             return Buffer.from(Nacl.box.after(payload, this.client_nonce.bytes(), this.key));
         }
     }
+    
     decrypt(type, payload) {
         if (type == 20100) {
             this.session_key = payload.slice(4, 28);
