@@ -55,7 +55,11 @@ class Messaging {
         this.encryptAndWriteToSocket(10100, 0, message.ByteStream.getBytes());
     }
     sendPepperLogin() {
-        const message = new LoginMessage();
+        // ScDocumentation 프로토콜에 따라 snonce 생성
+        const snonce = this.crypto.generateSnonce();
+        
+        // LoginMessage에 session_key와 snonce 전달
+        const message = new LoginMessage(this.crypto.session_key, snonce);
         message.ByteStream.set(250);
         message.encode();
         this.encryptAndWriteToSocket(10101, 0, message.ByteStream.getBytes());
@@ -64,6 +68,9 @@ class Messaging {
         const header = Buffer.alloc(7);
         header.writeUInt16BE(type, 0);
         buffer = this.crypto.encrypt(type, buffer);
+        if (!buffer) {
+            return Debugger.fatal("Failed to encrypt message {}".format(type));
+        }
         header.writeUIntBE(buffer.length, 2, 3);
         header.writeUInt16BE(version, 5);
         this._socket.write(header);
