@@ -1,13 +1,29 @@
 const ByteStream = require("../../../DataStream/ByteStream");
 
 module.exports = class {
-    constructor() {
+    constructor(sessionToken = null, snonce = null) {
         this.ByteStream = new ByteStream();
+        this.sessionToken = sessionToken;
+        this.snonce = snonce;
     }
+    
     encode() {
+        // ScDocumentation 프로토콜에 따라 Session Token과 snonce를 먼저 추가
+        if (this.sessionToken && this.sessionToken.length === 24) {
+            for (let i = 0; i < 24; i++) {
+                this.ByteStream.write(this.sessionToken[i]);
+            }
+        }
+        if (this.snonce && this.snonce.length === 24) {
+            for (let i = 0; i < 24; i++) {
+                this.ByteStream.write(this.snonce[i]);
+            }
+        }
+
+        // 기존 LoginMessage 필드들
         this.ByteStream.writeInt(settings.hi || 0); // high
         this.ByteStream.writeInt(settings.lo || 0); // low
-        this.ByteStream.writeString(settings.token); // token
+        this.ByteStream.writeString(settings.token || ""); // token
 
         this.ByteStream.writeInt(settings.major);
         this.ByteStream.writeInt(settings.build);
